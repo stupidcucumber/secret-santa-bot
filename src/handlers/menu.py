@@ -11,7 +11,7 @@ def main_menu(bot: telebot.TeleBot, state: dict=None):
             1. Register new group.
             2. Join group.
             3. List all groups.
-            4. List all users to whome you will give presents.
+            4. List all recipients.
     '''
     
     def generate_inline_markup():

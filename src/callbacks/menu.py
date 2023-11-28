@@ -15,12 +15,13 @@ def main_menu(bot: telebot.TeleBot, state: dict):
         query_id = query.id
         user_id = query.from_user.id
 
-        postambule = 'If you want to cancel the action use /cancel option.' 
+        answer_create_group = '''🎅 Ho Ho Ho! Santa Needs Your Help! 🌟
 
-        answer_create_group = '''
-        Please specify the name of the group with the following requirements:
-        \r- must contain at least one symbol, which is not a space character.
-        ''' + postambule
+Santa is on a quest to give this Secret Santa group a merry and magical name, and he needs your festive creativity! 🎁✨
+
+What enchanting name shall we bestow upon this jolly gathering of Secret Santas? The more creative, the merrier! 🎄✨
+
+Write down suggested name of the group (/cancel to cancel action):'''
         if state.get(user_id, None) is not None:
             bot.answer_callback_query(query_id, 'You are currently perform another action!')
             return
@@ -47,9 +48,9 @@ def main_menu(bot: telebot.TeleBot, state: dict):
             print(groups)
             created_groups = dbutils.get_all_created_groups(state['database'], user_id)
 
-            answer = 'You are part of the following groups:'
+            answer = 'Behold, dear one! 🌟 Here is the enchanting and festive list of all the groups you are a cherished member of:'
             for group in groups:
-                answer += '\n - ' + group + (' (you admin here)' if group in created_groups else '')
+                answer += '\n - ' + group + (' (you are admin here)' if group in created_groups else '')
 
             bot.send_message(chat_id=query.message.chat.id,
                              text=answer)
