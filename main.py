@@ -3,6 +3,7 @@ import yaml
 import argparse
 import src.handlers as handlers
 import src.callbacks as callbacks
+from src.utils import dbutils
 import sqlite3
 
 
@@ -13,6 +14,8 @@ def parse_arguments():
                         help='Path to the file, where base configuration is being stored.')
     parser.add_argument('--api-key', type=str, required=True,
                         help='API-key of your bot.')
+    parser.add_argument('-db', '--database', type=str, default='default.db',
+                        help='Path to the sqlite3 database. If not specified, default.db is created.')
     
     return parser.parse_args()
 
@@ -21,8 +24,13 @@ if __name__ == '__main__':
     # Processing arguments
     args = parse_arguments()
 
+    if args.database == 'default.db':
+        database = dbutils.create_database()
+    else:
+        database = sqlite3.connect(args.database)
+
     # State can be 'CREATING_GROUP', or 'JOINING_GROUP', or 'GENERATING_DESRIPTION', None
-    state = {} # Dict with {user_id: {state: ... , ...}, database: sqlite3.Connection}, if user is not present, then state is None
+    state = {'database': database} # Dict with {user_id: {state: ... , ...}, database: sqlite3.Connection}, if user is not present, then state is None
 
     with open(args.config_path) as config:
         config = yaml.safe_load(config)
@@ -40,8 +48,16 @@ if __name__ == '__main__':
         func=lambda message: state.get(message.from_user.id, None) is None
     )
     bot.register_message_handler(
-        handlers.oneshot.extract_group_name(bot=bool, state=state), 
+        handlers.oneshot.extract_group_name(bot=bot, state=state), 
         func=lambda message: state.get(message.from_user.id, None) is not None and state.get(message.from_user.id, None)['state'] == 'CREATING_GROUP'
+    )
+    bot.register_message_handler(
+        handlers.oneshot.extract_about_yourself(bot=bot, state=state),
+        func=lambda message: state.get(message.from_user.id, None) is not None and state.get(message.from_user.id, None)['state'] == 'WRITING_INFO_ABOUT'
+    )
+    bot.register_message_handler(
+        handlers.oneshot.extract_about_yourself(bot=bot, state=state),
+        func=lambda message: state.get(message.from_user.id, None) is not None and state.get(message.from_user.id, None)['state'] == 'WRITING_INFO_DESIRES'
     )
 
     # Registering Callbacks for the bot
