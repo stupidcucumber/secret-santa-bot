@@ -2,7 +2,7 @@ from telebot import types
 import telebot
 
 
-def main_menu(bot: telebot.TeleBot):
+def main_menu(bot: telebot.TeleBot, state: dict=None):
     '''
         This is the enclosure function that generates handler for 'main_menu'.
 
