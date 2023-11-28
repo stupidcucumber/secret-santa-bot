@@ -14,4 +14,4 @@ python3 -m pip install -r requirements.txt
 # Implementation
 
 ## Database
-For storing information about customers we use PostgreSQL.  
+For storing information about customers we use SQLite.  
