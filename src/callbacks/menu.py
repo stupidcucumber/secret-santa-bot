@@ -35,9 +35,22 @@ def main_menu(bot: telebot.TeleBot, state: dict):
 
         elif query.data == 'join_group':
             bot.answer_callback_query(query_id, text='You are trying to join group!')
+
+            bot.send_message(query.message.chat.id, 'Please, write down your invitation hash:')
+            state[user_id] = {}
+            state[user_id]['state'] = 'JOINING_GROUP'
+            print(state)
+            
         elif query.data == 'list_groups':
             bot.answer_callback_query(query_id, text='You are trying to list all groups!')
-            dbutils.get_all_created_groups(state['database'], user_id)
+            groups = dbutils.get_all_created_groups(state['database'], user_id)
+
+            answer = 'You are part of the following groups:'
+            for group in groups:
+                answer += '\n - ' + group
+
+            bot.send_message(chat_id=query.message.chat.id,
+                             text=answer)
         elif query.data == 'list_presentee':
             bot.answer_callback_query(query_id, text='You are trying to list all !')
 

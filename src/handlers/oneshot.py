@@ -1,6 +1,7 @@
 from telebot import types
 from ..utils import validators, dbutils
 import telebot
+from cryptography.fernet import Fernet
 
 
 def send_hello(bot: telebot.TeleBot, state: dict=None):
@@ -53,6 +54,7 @@ def extract_group_name(bot: telebot.TeleBot, state: dict=None):
             If user currently in a state of 'CREATING_GROUP', then it checks the name for the
         eligibility and adds it to the database. 
     '''
+
     def handler(message: types.Message):
         chat_id = message.chat.id
         user_id = message.from_user.id
@@ -62,7 +64,11 @@ def extract_group_name(bot: telebot.TeleBot, state: dict=None):
         if validators.validate_group_name(group_name):
             group_id = dbutils.insert_group_name(state['database'], group_name, user_id)
             if group_id != -1:
-                bot.send_message(chat_id=chat_id, text='Group has been registered! Now others can also join by specifying id: "%s" :)' % group_id)
+                bot.send_message(chat_id=chat_id, text='''Group has been registered! Now others can also join by specifying this hash: 
+                    `%s`
+                                 ''' 
+                                 % state['shiphrator'].encrypt(bytes(str(group_id), 'utf-8')).decode('utf-8'),
+                                 parse_mode='MarkDown')
                 bot.send_message(chat_id=chat_id, text='Please tell about yourself: hobbies, films, books etc.')
 
                 state[user_id]['state'] = 'WRITING_INFO_ABOUT'
@@ -74,6 +80,26 @@ def extract_group_name(bot: telebot.TeleBot, state: dict=None):
             bot.send_message(chat_id=chat_id, text='Name is bad, please enter another one!')
 
     return handler
+
+
+def extract_group_hash(bot: telebot.TeleBot, state: dict=None):
+
+    def handler(message: types.Message):
+        chat_id = message.chat.id
+        user_id = message.from_user.id
+
+        group_hash = bytes(message.text, encoding='utf-8')
+        try:
+            id = int(state['shiphrator'].decrypt(group_hash).decode('utf-8'))
+            state[user_id]['group_id'] = id
+            state[user_id]['state'] = 'WRITING_INFO_ABOUT'
+
+            bot.send_message(chat_id=chat_id, text='Yes! Invitation processed. Only a few steps left :) Tell about yourself:')
+        except:
+            bot.send_message(chat_id=chat_id, text='Sorry, hash is incorrect :(')
+
+    return handler
+
 
 
 def extract_about_yourself(bot: telebot.TeleBot, state: dict=None):

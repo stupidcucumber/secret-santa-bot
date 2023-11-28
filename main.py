@@ -5,6 +5,7 @@ import src.handlers as handlers
 import src.callbacks as callbacks
 from src.utils import dbutils
 import sqlite3
+from cryptography.fernet import Fernet
 
 sqlite3.threadsafety = 3
 
@@ -30,11 +31,17 @@ if __name__ == '__main__':
 
     if args.create_database:
         database = dbutils.create_database(args.database)
+        key = Fernet.generate_key()
+        with open('.key', 'xb') as key_file:
+            key_file.write(key)
+
     else:
         database = sqlite3.connect(args.database, check_same_thread=False)
+        with open('.key', 'rb') as key_file:
+            key = key_file.read()
 
     # State can be 'CREATING_GROUP', or 'JOINING_GROUP', or 'GENERATING_DESRIPTION', None
-    state = {'database': database} # Dict with {user_id: {state: ... , ...}, database: sqlite3.Connection}, if user is not present, then state is None
+    state = {'database': database, 'shiphrator': Fernet(key)} # Dict with {user_id: {state: ... , ...}, database: sqlite3.Connection}, if user is not present, then state is None
 
     with open(args.config_path) as config:
         config = yaml.safe_load(config)
@@ -62,6 +69,10 @@ if __name__ == '__main__':
     bot.register_message_handler(
         handlers.oneshot.extract_desire(bot=bot, state=state),
         func=lambda message: state.get(message.from_user.id, None) is not None and state.get(message.from_user.id, None)['state'] == 'WRITING_INFO_DESIRES'
+    )
+    bot.register_message_handler(
+        handlers.oneshot.extract_group_hash(bot=bot, state=state),
+        func=lambda message: state.get(message.from_user.id, None) is not None and state.get(message.from_user.id, None)['state'] == 'JOINING_GROUP'
     )
 
     # Registering Callbacks for the bot
