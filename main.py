@@ -2,6 +2,7 @@ import telebot
 import yaml
 import argparse
 import src.handlers as handlers
+import src.callbacks as callbacks
 
 
 def parse_arguments():
@@ -15,11 +16,11 @@ def parse_arguments():
     return parser.parse_args()
 
 
-# Processing arguments
-args = parse_arguments()
-
-
 if __name__ == '__main__':
+    # Processing arguments
+    args = parse_arguments()
+
+
     with open(args.config_path) as config:
         config = yaml.safe_load(config)
 
@@ -28,8 +29,12 @@ if __name__ == '__main__':
         token=args.api_key
     )
 
-    # Registering handlers for bot
+    # Registering handlers for the bot
     bot.register_message_handler(handlers.oneshot.send_hello(bot=bot), commands=['start'])
+    bot.register_message_handler(handlers.menu.main_menu(bot=bot), commands=['menu'])
+
+    # Registering Callbacks for the bot
+    bot.register_callback_query_handler(callbacks.menu.main_menu(bot=bot), func=lambda x: True)
 
     # Running in a loop
     bot.infinity_polling(skip_pending=True)
