@@ -91,6 +91,12 @@ def extract_group_hash(bot: telebot.TeleBot, state: dict=None):
         group_hash = bytes(message.text, encoding='utf-8')
         try:
             id = int(state['shiphrator'].decrypt(group_hash).decode('utf-8'))
+            valid = validators.validate_joining(state['database'], id, user_id)
+            if not valid:
+                bot.send_message(chat_id=chat_id, text='Sorry, but you have already joined this group!')
+                state.pop(user_id)
+                return 
+            
             state[user_id]['group_id'] = id
             state[user_id]['state'] = 'WRITING_INFO_ABOUT'
 
@@ -99,7 +105,6 @@ def extract_group_hash(bot: telebot.TeleBot, state: dict=None):
             bot.send_message(chat_id=chat_id, text='Sorry, hash is incorrect :(')
 
     return handler
-
 
 
 def extract_about_yourself(bot: telebot.TeleBot, state: dict=None):
