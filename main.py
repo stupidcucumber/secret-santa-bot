@@ -1,7 +1,7 @@
 import telebot
-from telebot import types
 import yaml
 import argparse
+import src.handlers as handlers
 
 
 def parse_arguments():
@@ -18,29 +18,18 @@ def parse_arguments():
 # Processing arguments
 args = parse_arguments()
 
-# Bot handlers
-bot = telebot.TeleBot(
-    token=args.api_key
-)
-
-@bot.message_handler(commands=['start'])
-def send_hello(message: types.Message):
-    chat_id = message.chat.id
-    start_image = open('./misc/start_message_photo.jpg', 'rb').read()
-    caption_text = '''
-        Hello!
-    '''
-    print('New chat_id! Chat ID: ', chat_id)
-    bot.send_photo(chat_id=chat_id,
-                   photo=start_image,
-                   caption=caption_text)
-
-
-
-
 
 if __name__ == '__main__':
     with open(args.config_path) as config:
         config = yaml.safe_load(config)
 
-    bot.infinity_polling()
+    # Bot handlers
+    bot = telebot.TeleBot(
+        token=args.api_key
+    )
+
+    # Registering handlers for bot
+    bot.register_message_handler(handlers.oneshot.send_hello(bot=bot), commands=['start'])
+
+    # Running in a loop
+    bot.infinity_polling(skip_pending=True)
