@@ -2,7 +2,7 @@ import sqlite3
 
 
 def create_database(name: str='default.db'):
-    database = sqlite3.connect(name)
+    database = sqlite3.connect(name, check_same_thread=False)
 
     cursor = database.cursor()
 
@@ -14,7 +14,7 @@ def create_database(name: str='default.db'):
                 name TEXT,
 
                 PRIMARY KEY(group_id)
-            )
+            );
         '''
     )
 
@@ -35,6 +35,7 @@ def create_database(name: str='default.db'):
     )  
 
     cursor.close()
+    database.commit()
 
     return database
 
@@ -52,6 +53,7 @@ def insert_group_name(database: sqlite3.Connection, group_name: str, admin_id: i
     id = cursor.lastrowid
 
     cursor.close()
+    database.commit()
 
     return id
 
@@ -72,5 +74,20 @@ def insert_into_groups_users(database: sqlite3.Connection, group_id: int, user_i
     id = cursor.lastrowid
 
     cursor.close()
+    database.commit()
 
     return id
+
+
+def get_all_created_groups(database: sqlite3.Connection, user_id: int) -> int:
+    cursor = database.cursor()
+
+    result = cursor.execute(
+        '''
+            SELECT name FROM groups WHERE admin_id = %d
+        ''' % user_id
+    ).fetchall()
+
+    cursor.close()
+
+    return [res[0] for res in result]

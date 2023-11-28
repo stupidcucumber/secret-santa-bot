@@ -90,6 +90,7 @@ def extract_about_yourself(bot: telebot.TeleBot, state: dict=None):
         if validators.validate_about(message.text):
             bot.send_message(chat_id=chat_id, 
                              text='Very interesting! Maybe you want something specific or have thoughts on what do you want?)')
+            state[user_id]['about'] = message.text
             state[user_id]['state'] = 'WRITING_INFO_DESIRES'
         else:
             bot.send_message(chat_id=chat_id,
@@ -112,6 +113,7 @@ def extract_desire(bot: telebot.TeleBot, state: dict=None):
         entry_id = dbutils.insert_into_groups_users(
             database=state['database'],
             group_id=state[user_id]['group_id'],
+            user_id=user_id,
             about=state[user_id]['about'],
             desired=message.text
         )
@@ -125,5 +127,5 @@ def extract_desire(bot: telebot.TeleBot, state: dict=None):
                              text='All good! Now you are the member of a group!')
         state.pop(user_id)
         
-        
+
     return handler
