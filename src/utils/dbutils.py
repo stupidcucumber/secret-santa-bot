@@ -91,3 +91,34 @@ def get_all_created_groups(database: sqlite3.Connection, user_id: int) -> int:
     cursor.close()
 
     return [res[0] for res in result]
+
+
+def get_group_names(database: sqlite3.Connection, user_id: int) -> list:
+    cursor = database.cursor()
+
+    result = cursor.execute(
+        '''
+            SELECT g.name
+            FROM groups_users gu
+            INNER JOIN groups g ON g.group_id = gu.group_id  
+            WHERE gu.user_id = %d
+        ''' % user_id
+    ).fetchall()
+
+    cursor.close()
+
+    return [name[0] for name in result]
+
+
+def get_group_ids(database: sqlite3.Connection, user_id: int) -> list:
+    cursor = database.cursor()
+
+    result = cursor.execute(
+        '''
+            SELECT DISTINCT group_id FROM groups_users WHERE user_id = %d
+        ''' % user_id
+    ).fetchall()
+
+    cursor.close()
+
+    return [int(x[0]) for x in result]

@@ -13,6 +13,7 @@ def main_menu(bot: telebot.TeleBot, state: dict=None):
             3. List all groups.
             4. List all users to whome you will give presents.
     '''
+    
     def generate_inline_markup():
         markup = types.InlineKeyboardMarkup()
         markup.add(
