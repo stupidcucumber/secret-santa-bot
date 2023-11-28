@@ -1,5 +1,6 @@
 import telebot
 from telebot import types
+from ..utils import dbutils
 
 
 def main_menu(bot: telebot.TeleBot, state: dict):
@@ -18,7 +19,7 @@ def main_menu(bot: telebot.TeleBot, state: dict):
 
         answer_create_group = '''
         Please specify the name of the group with the following requirements:
-        - must contain at least one symbol, which is not a space character.
+        \r- must contain at least one symbol, which is not a space character.
         ''' + postambule
         if state.get(user_id, None) is not None:
             bot.answer_callback_query(query_id, 'You are currently perform another action!')
@@ -36,6 +37,7 @@ def main_menu(bot: telebot.TeleBot, state: dict):
             bot.answer_callback_query(query_id, text='You are trying to join group!')
         elif query.data == 'list_groups':
             bot.answer_callback_query(query_id, text='You are trying to list all groups!')
+            dbutils.get_all_created_groups(state['database'], user_id)
         elif query.data == 'list_presentee':
             bot.answer_callback_query(query_id, text='You are trying to list all !')
 
