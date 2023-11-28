@@ -38,6 +38,7 @@ def send_hello(message: types.Message):
 
 
 
+
 if __name__ == '__main__':
     with open(args.config_path) as config:
         config = yaml.safe_load(config)
