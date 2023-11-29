@@ -68,6 +68,10 @@ if __name__ == '__main__':
         func=lambda message: state.get(message.from_user.id, None) is None
     )
     bot.register_message_handler(
+        callback=lambda message: bot.reply_to(message=message, text='Sorry, command is not recognized 🎅'),
+        func=lambda message: state.get(message.from_user.id, None) is None
+    )
+    bot.register_message_handler(
         handlers.oneshot.extract_group_name(bot=bot, state=state), 
         func=lambda message: state.get(message.from_user.id, None) is not None 
             and state.get(message.from_user.id, None)['state'] == 'CREATING_GROUP'
