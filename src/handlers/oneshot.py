@@ -128,7 +128,9 @@ In this cozy corner of the North Pole (or, well, the internet), you'll discover 
                              
 But before we start, I want to know more about you! Tell Santa a bit about yourself:''')
         except:
-            bot.send_message(chat_id=chat_id, text='Sorry, hash is incorrect :(')
+            bot.send_message(chat_id=chat_id, text='Sorry, key is incorrect :(')
+
+            state.pop(user_id)
 
     return handler
 
@@ -155,7 +157,7 @@ Write down what you would prefer (optionally), if you do not want, just write 'I
             state[user_id]['state'] = 'WRITING_INFO_DESIRES'
         else:
             bot.send_message(chat_id=chat_id,
-                             text='Sorry, you must write about something!')
+                             text='Sorry, you must write about something! Try again:')
         
     return handler
 

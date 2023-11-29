@@ -85,13 +85,13 @@ def get_all_created_groups(database: sqlite3.Connection, user_id: int) -> int:
 
     result = cursor.execute(
         '''
-            SELECT name FROM groups WHERE admin_id = %d
+            SELECT name, group_id FROM groups WHERE admin_id = %d
         ''' % user_id
     ).fetchall()
 
     cursor.close()
 
-    return [res[0] for res in result]
+    return result
 
 
 def get_group_names(database: sqlite3.Connection, user_id: int) -> list:
@@ -99,7 +99,7 @@ def get_group_names(database: sqlite3.Connection, user_id: int) -> list:
 
     result = cursor.execute(
         '''
-            SELECT g.name
+            SELECT g.name, g.group_id
             FROM groups_users gu
             INNER JOIN groups g ON g.group_id = gu.group_id  
             WHERE gu.user_id = %d
@@ -108,7 +108,7 @@ def get_group_names(database: sqlite3.Connection, user_id: int) -> list:
 
     cursor.close()
 
-    return [name[0] for name in result]
+    return result
 
 
 def get_group_ids(database: sqlite3.Connection, user_id: int) -> list:
@@ -140,3 +140,9 @@ def get_all_recipients(database: sqlite3.Connection, user_id: int) -> list:
     cursor.close()
 
     return result
+
+
+def randomize_santas(database: sqlite3.Connection, group_id: int) -> bool:
+    
+
+    return True

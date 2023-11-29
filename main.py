@@ -82,7 +82,13 @@ if __name__ == '__main__':
     # Registering Callbacks for the bot
     bot.register_callback_query_handler(
         callbacks.menu.main_menu(bot=bot, state=state),
-        func=lambda call: True
+        func=lambda call: state.get(call.from_user.id, None) is None
+    )
+
+    bot.register_callback_query_handler(
+        callback=callbacks.menu.randomize_group(bot=bot, state=state),
+        func=lambda call: state.get(call.from_user.id, None) is not None 
+            and state.get(call.from_user.id, None)['state'] == 'RANDOMIZING_GROUP'
     )
 
     # Running in a loop

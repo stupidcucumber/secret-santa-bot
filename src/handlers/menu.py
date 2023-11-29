@@ -39,6 +39,13 @@ def main_menu(bot: telebot.TeleBot, state: dict=None):
             row_width=1
         )
 
+        markup.add(
+            types.InlineKeyboardButton(
+                'Randomize Secret Santas (for admins)',
+                callback_data='start_randomization'
+            )
+        )
+
         return markup
 
     def handler(message: types.Message):
