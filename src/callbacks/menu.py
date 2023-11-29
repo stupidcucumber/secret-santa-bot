@@ -101,9 +101,11 @@ Write down suggested name of the group (/cancel to cancel action):'''
             bot.send_message(chat_id=query.message.chat.id,
                              text='🎅 Please choose the group you want to start randomizing: ',
                              reply_markup=generate_markup_groups())
-            state[user_id] = {}
-            state[user_id]['state'] = 'RANDOMIZING_GROUP'
-            print(state[user_id])
+            
+            if len(groups) > 0:
+                state[user_id] = {}
+                state[user_id]['state'] = 'RANDOMIZING_GROUP'
+                print(state[user_id])
 
             bot.answer_callback_query(query_id, text='🌟 Randomization starts!..')
 
@@ -117,16 +119,37 @@ def randomize_group(bot: telebot.TeleBot, state: dict=None):
         group_id = int(query.data.split('_')[-1])
         group_name = query.data.split('_')[-2]
 
-        if dbutils.randomize_santas(state['database'], group_id=group_id):
-            message_text = 'Ho ho ho! 🎅 All recipients have found their Santas in %s! 🎁🎉 Spread the joy and let the festive fun begin! 🌟 Merry Christmas to all! 🎄🎅' % group_name
+        entries = dbutils.randomize_santas(state['database'], group_id=group_id)
 
-            bot.send_message(chat_id=query.message.chat.id,
-                             text=message_text)
+        if len(entries) > 0:
+            message_text = 'Ho ho ho! 🎅 All recipients have found their Santas in %s! 🎁🎉 Spread the joy and let the festive fun begin! 🌟 Merry Christmas to all! 🎄🎅' % group_name
+            
+            for entry in entries:
+                bot.send_message(chat_id=entry[0],
+                                text=message_text)
+                template = '''🎅 <b>Santa's Present Recipient:</b>  @{recipient_name}
+
+🎄 <b>Group Name:</b> {group_name}
+
+📝 <b>About:</b>
+    {about}
+
+🎁 <b>Desired Presents:</b>
+    {desired_presents}
+
+🔔 <b>Important Notes:</b>
+[Include any specific instructions or details that Santa and the elves need to know for a successful delivery.]
+'''
+                bot.send_message(chat_id=entry[0],
+                                text=template.format(recipient_name=entry[1], group_name=entry[2], about=entry[3], desired_presents=entry[4]),
+                                parse_mode='HTML')
+            bot.answer_callback_query(query.id, text='Group has been randomized! 🎉')
         else:
             message_text = "😔🎁 Unfortunately, it seems there's been a hiccup in our matching process of the group %s. Try again later..." % group_name
 
             bot.send_message(chat_id=query.message.chat.id,
                              text=message_text)
+            
 
         state.pop(query.from_user.id)
 
