@@ -66,9 +66,6 @@ Write down suggested name of the group (/cancel to cancel action):'''
 
 🎁 <b>Desired Presents:</b>
 {desired_presents}
-
-🔔 <b>Important Notes:</b>
-[Include any specific instructions or details that Santa and the elves need to know for a successful delivery.]
 '''
             def generate_markup_openai(user_id, group_id):
                 markup = types.InlineKeyboardMarkup()
@@ -182,7 +179,7 @@ def gpt_suggestion(bot: telebot.TeleBot, state: dict=None):
                 {'role': 'system', 'content': 'Imagine you are Santa and helping elf to choose present for his recipient.'},
                 {"role": "user", "content": info}
             ],
-            max_tokens=128, # Unfortunately, I can't afford more.
+            max_tokens=256, # Unfortunately, I can't afford more.
             temperature=0.1 # I am not concerned about truthfulness of statements, but rather trying to make bot as creative as possible. 
         )
 
@@ -194,7 +191,7 @@ def gpt_suggestion(bot: telebot.TeleBot, state: dict=None):
 
         entry = dbutils.get_gu_entry(state['database'], user_id=santa_id, group_id=group_id)
 
-        request = 'Be friendly and write emojies. Be short but meaningful.. I have some troubles choosing present for my recipient. If recipient did not provide any more information just be creative! There is some information that he/she told me: ' + \
+        request = 'Be friendly and write emojies. Відповідай коротко та яскраво. Відповідай українською. I have some troubles choosing present for my recipient. If recipient did not provide any more information just be creative! There is some information that he/she told me: ' + \
         'About: ' + entry[0] + '\n' + \
         'Desired presents (optional): ' + entry[1]
 

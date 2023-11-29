@@ -68,6 +68,8 @@ def extract_group_name(bot: telebot.TeleBot, state: dict=None):
         chat_id = message.chat.id
         user_id = message.from_user.id
 
+        print('extract_group_name: ', message.from_user.username)
+
         group_name = message.text
 
         if validators.validate_group_name(group_name):
@@ -153,6 +155,7 @@ If you could have anything special on your Christmas Eve tree, what would it be?
 
 Write down what you would prefer (optionally), if you do not want, just write 'I don't know': ''')
             state[user_id]['about'] = message.text
+            print('extract_about_yourself: ', message.from_user.username, message.text)
             state[user_id]['state'] = 'WRITING_INFO_DESIRES'
         else:
             bot.send_message(chat_id=chat_id,
@@ -181,6 +184,7 @@ def extract_desire(bot: telebot.TeleBot, state: dict=None):
             about=state[user_id]['about'],
             desired=message.text
         )
+        print('extract_about_yourself: ', message.from_user.username, message.text)
         if entry_id == -1:
             bot.send_message(chat_id=chat_id,
                              text='Sorry, but something went wrong... Try again!(')
