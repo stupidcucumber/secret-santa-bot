@@ -15,12 +15,13 @@ def main_menu(bot: telebot.TeleBot, state: dict):
         query_id = query.id
         user_id = query.from_user.id
 
-        postambule = 'If you want to cancel the action use /cancel option.' 
+        answer_create_group = '''🎅 Ho Ho Ho! Santa Needs Your Help! 🌟
 
-        answer_create_group = '''
-        Please specify the name of the group with the following requirements:
-        \r- must contain at least one symbol, which is not a space character.
-        ''' + postambule
+Santa is on a quest to give this Secret Santa group a merry and magical name, and he needs your festive creativity! 🎁✨
+
+What enchanting name shall we bestow upon this jolly gathering of Secret Santas? The more creative, the merrier! 🎄✨
+
+Write down suggested name of the group (/cancel to cancel action):'''
         if state.get(user_id, None) is not None:
             bot.answer_callback_query(query_id, 'You are currently perform another action!')
             return
@@ -44,16 +45,89 @@ def main_menu(bot: telebot.TeleBot, state: dict):
         elif query.data == 'list_groups':
             bot.answer_callback_query(query_id, text='You are trying to list all groups!')
             groups = dbutils.get_group_names(state['database'], user_id=user_id)
-            print(groups)
+            group_names = [group[0] for group in groups]
+            print(group_names)
             created_groups = dbutils.get_all_created_groups(state['database'], user_id)
+            created_group_names = [group[0] for group in created_groups]
 
-            answer = 'You are part of the following groups:'
-            for group in groups:
-                answer += '\n - ' + group + (' (you admin here)' if group in created_groups else '')
+            answer = 'Behold, dear one! 🌟 Here is the enchanting and festive list of all the groups you are a cherished member of:'
+            for group in group_names:
+                answer += '\n - ' + group + (' (you are admin here)' if group in created_group_names else '')
 
             bot.send_message(chat_id=query.message.chat.id,
                              text=answer)
         elif query.data == 'list_presentee':
-            bot.answer_callback_query(query_id, text='You are trying to list all !')
+            bot.answer_callback_query(query_id, text='🌟 Searching for recipients!..')
+            entries = dbutils.get_all_recipients(state['database'], user_id=user_id)
+            template = '''🎅 <b>Santa's Present Recipient:</b>  @{recipient_name}
+
+🎄 <b>Group Name:</b> {group_name}
+
+📝 <b>About:</b>
+{about}
+
+🎁 <b>Desired Presents:</b>
+{desired_presents}
+
+🔔 <b>Important Notes:</b>
+[Include any specific instructions or details that Santa and the elves need to know for a successful delivery.]
+'''
+            bot.send_message(chat_id=query.message.chat.id,
+                             text='🌟 Here your recipients:')
+            for entry in entries:
+                message_text = template.format(group_name=entry[0],
+                                               recipient_name=entry[1],
+                                               about=entry[2],
+                                               desired_presents=entry[3])
+                bot.send_message(chat_id=query.message.chat.id,
+                                 text=message_text,
+                                 parse_mode='HTML')
+        elif query.data == 'start_randomization':
+            groups = dbutils.get_all_created_groups(state['database'], user_id=user_id)
+
+            # Generating keyboard markup for randomization
+            def generate_markup_groups():
+                markup = types.InlineKeyboardMarkup()
+                for group in groups:
+                    markup.add(
+                        types.InlineKeyboardButton(
+                            group[0],   # Name of the group as a label
+                            callback_data='randomizing_group_' + group[0] + '_' + str(group[1])  # name and id of the group as a callback data
+                        )
+                    )
+
+                return markup
+
+            bot.send_message(chat_id=query.message.chat.id,
+                             text='🎅 Please choose the group you want to start randomizing: ',
+                             reply_markup=generate_markup_groups())
+            state[user_id] = {}
+            state[user_id]['state'] = 'RANDOMIZING_GROUP'
+            print(state[user_id])
+
+            bot.answer_callback_query(query_id, text='🌟 Randomization starts!..')
+
+
+    return callback
+
+
+def randomize_group(bot: telebot.TeleBot, state: dict=None):
+    
+    def callback(query: types.CallbackQuery):
+        group_id = int(query.data.split('_')[-1])
+        group_name = query.data.split('_')[-2]
+
+        if dbutils.randomize_santas(state['database'], group_id=group_id):
+            message_text = 'Ho ho ho! 🎅 All recipients have found their Santas in %s! 🎁🎉 Spread the joy and let the festive fun begin! 🌟 Merry Christmas to all! 🎄🎅' % group_name
+
+            bot.send_message(chat_id=query.message.chat.id,
+                             text=message_text)
+        else:
+            message_text = "😔🎁 Unfortunately, it seems there's been a hiccup in our matching process of the group %s. Try again later..." % group_name
+
+            bot.send_message(chat_id=query.message.chat.id,
+                             text=message_text)
+
+        state.pop(query.from_user.id)
 
     return callback
