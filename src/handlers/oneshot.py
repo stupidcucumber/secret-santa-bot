@@ -25,7 +25,7 @@ Ho Ho Ho! It's that magical time of the year, and you've just stepped into the S
 3. Select a thoughtful gift for them (keep it a secret! 🤫).\n
 4. Share the joy when everyone reveals their Secret Santa gifts!\n
 
-Ready to embark on this jolly adventure? Click /menu and let the Secret Santa magic begin! 🎄✨
+Ready to embark on this jolly adventure? Let the Secret Santa magic begin! 🎄✨
 
 Happy holidays! 🎅🎄
         '''
