@@ -55,6 +55,30 @@ Write down suggested name of the group (/cancel to cancel action):'''
             bot.send_message(chat_id=query.message.chat.id,
                              text=answer)
         elif query.data == 'list_presentee':
-            bot.answer_callback_query(query_id, text='You are trying to list all !')
+            bot.answer_callback_query(query_id, text='🌟 Searching for recipients!..')
+            entries = dbutils.get_all_recipients(state['database'], user_id=user_id)
+            template = '''🎅 <b>Santa's Present Recipient:</b>  @{recipient_name}
+
+🎄 <b>Group Name:</b> {group_name}
+
+📝 <b>About:</b>
+{about}
+
+🎁 <b>Desired Presents:</b>
+{desired_presents}
+
+🔔 <b>Important Notes:</b>
+[Include any specific instructions or details that Santa and the elves need to know for a successful delivery.]
+'''
+            bot.send_message(chat_id=query.message.chat.id,
+                             text='🌟 Here your recipients:')
+            for entry in entries:
+                message_text = template.format(group_name=entry[0],
+                                               recipient_name=entry[1],
+                                               about=entry[2],
+                                               desired_presents=entry[3])
+                bot.send_message(chat_id=query.message.chat.id,
+                                 text=message_text,
+                                 parse_mode='HTML')
 
     return callback

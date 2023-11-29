@@ -175,6 +175,7 @@ def extract_desire(bot: telebot.TeleBot, state: dict=None):
             database=state['database'],
             group_id=state[user_id]['group_id'],
             user_id=user_id,
+            user_name=message.from_user.username,
             about=state[user_id]['about'],
             desired=message.text
         )

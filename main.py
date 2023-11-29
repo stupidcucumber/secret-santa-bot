@@ -60,19 +60,23 @@ if __name__ == '__main__':
     )
     bot.register_message_handler(
         handlers.oneshot.extract_group_name(bot=bot, state=state), 
-        func=lambda message: state.get(message.from_user.id, None) is not None and state.get(message.from_user.id, None)['state'] == 'CREATING_GROUP'
+        func=lambda message: state.get(message.from_user.id, None) is not None 
+            and state.get(message.from_user.id, None)['state'] == 'CREATING_GROUP'
     )
     bot.register_message_handler(
         handlers.oneshot.extract_about_yourself(bot=bot, state=state),
-        func=lambda message: state.get(message.from_user.id, None) is not None and state.get(message.from_user.id, None)['state'] == 'WRITING_INFO_ABOUT'
+        func=lambda message: state.get(message.from_user.id, None) is not None 
+            and state.get(message.from_user.id, None)['state'] == 'WRITING_INFO_ABOUT'
     )
     bot.register_message_handler(
         handlers.oneshot.extract_desire(bot=bot, state=state),
-        func=lambda message: state.get(message.from_user.id, None) is not None and state.get(message.from_user.id, None)['state'] == 'WRITING_INFO_DESIRES'
+        func=lambda message: state.get(message.from_user.id, None) is not None 
+            and state.get(message.from_user.id, None)['state'] == 'WRITING_INFO_DESIRES'
     )
     bot.register_message_handler(
         handlers.oneshot.extract_group_hash(bot=bot, state=state),
-        func=lambda message: state.get(message.from_user.id, None) is not None and state.get(message.from_user.id, None)['state'] == 'JOINING_GROUP'
+        func=lambda message: state.get(message.from_user.id, None) is not None 
+            and state.get(message.from_user.id, None)['state'] == 'JOINING_GROUP'
     )
 
     # Registering Callbacks for the bot

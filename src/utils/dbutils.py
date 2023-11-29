@@ -25,6 +25,7 @@ def create_database(name: str='default.db'):
                 group_id INTEGER,
                 santa_id INTEGER,
                 user_id INTEGER,
+                user_name TEXT,
                 about TEXT,
                 desired TEXT,
 
@@ -58,14 +59,14 @@ def insert_group_name(database: sqlite3.Connection, group_name: str, admin_id: i
     return id
 
 
-def insert_into_groups_users(database: sqlite3.Connection, group_id: int, user_id: int, about: str, desired: str) -> int:
+def insert_into_groups_users(database: sqlite3.Connection, group_id: int, user_id: int, user_name: str, about: str, desired: str) -> int:
     cursor = database.cursor()
 
     cursor.execute(
         '''
-            INSERT INTO groups_users (group_id, santa_id, user_id, about, desired)
-            VALUES (%d, null, %d, "%s", "%s")
-        ''' % (group_id, user_id, about, desired)
+            INSERT INTO groups_users (group_id, santa_id, user_id, user_name, about, desired)
+            VALUES (%d, null, %d, "%s", "%s", "%s")
+        ''' % (group_id, user_id, user_name, about, desired)
     )
 
     if cursor.rowcount == 0:
@@ -122,3 +123,20 @@ def get_group_ids(database: sqlite3.Connection, user_id: int) -> list:
     cursor.close()
 
     return [int(x[0]) for x in result]
+
+
+def get_all_recipients(database: sqlite3.Connection, user_id: int) -> list:
+    cursor = database.cursor()
+
+    result = cursor.execute(
+        '''
+            SELECT g.name, user_name, about, desired 
+            FROM groups_users gu
+            INNER JOIN groups g ON g.group_id = gu.group_id 
+            WHERE santa_id=%d
+        ''' % user_id
+    ).fetchall()
+
+    cursor.close()
+
+    return result
