@@ -2,3 +2,4 @@ pyTelegramBotAPI
 pyyaml
 cryptography
 numpy
+openai

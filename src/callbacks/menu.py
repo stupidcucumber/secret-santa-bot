@@ -1,6 +1,7 @@
 import telebot
 from telebot import types
 from ..utils import dbutils
+import openai
 
 
 def main_menu(bot: telebot.TeleBot, state: dict):
@@ -32,7 +33,6 @@ Write down suggested name of the group (/cancel to cancel action):'''
             bot.send_message(query.message.chat.id, answer_create_group)
             state[user_id] = {}
             state[user_id]['state'] = 'CREATING_GROUP'
-            print(state)
 
         elif query.data == 'join_group':
             bot.answer_callback_query(query_id, text='You are trying to join group!')
@@ -40,13 +40,11 @@ Write down suggested name of the group (/cancel to cancel action):'''
             bot.send_message(query.message.chat.id, 'Please, write down your invitation hash:')
             state[user_id] = {}
             state[user_id]['state'] = 'JOINING_GROUP'
-            print(state)
 
         elif query.data == 'list_groups':
             bot.answer_callback_query(query_id, text='You are trying to list all groups!')
             groups = dbutils.get_group_names(state['database'], user_id=user_id)
             group_names = [group[0] for group in groups]
-            print(group_names)
             created_groups = dbutils.get_all_created_groups(state['database'], user_id)
             created_group_names = [group[0] for group in created_groups]
 
@@ -72,6 +70,17 @@ Write down suggested name of the group (/cancel to cancel action):'''
 🔔 <b>Important Notes:</b>
 [Include any specific instructions or details that Santa and the elves need to know for a successful delivery.]
 '''
+            def generate_markup_openai(user_id, group_id):
+                markup = types.InlineKeyboardMarkup()
+                markup.add(
+                    types.InlineKeyboardButton(
+                        'Get suggestion from Santa',
+                        callback_data='openai_' + str(user_id) + '_' + str(group_id)
+                    )
+                )
+
+                return markup
+            
             bot.send_message(chat_id=query.message.chat.id,
                              text='🌟 Here your recipients:')
             for entry in entries:
@@ -79,9 +88,12 @@ Write down suggested name of the group (/cancel to cancel action):'''
                                                recipient_name=entry[1],
                                                about=entry[2],
                                                desired_presents=entry[3])
+                print(entry)
                 bot.send_message(chat_id=query.message.chat.id,
                                  text=message_text,
-                                 parse_mode='HTML')
+                                 parse_mode='HTML',
+                                 reply_markup=generate_markup_openai(user_id=entry[4], group_id=entry[5]))
+                
         elif query.data == 'start_randomization':
             groups = dbutils.get_all_created_groups(state['database'], user_id=user_id)
 
@@ -105,15 +117,23 @@ Write down suggested name of the group (/cancel to cancel action):'''
             if len(groups) > 0:
                 state[user_id] = {}
                 state[user_id]['state'] = 'RANDOMIZING_GROUP'
-                print(state[user_id])
 
             bot.answer_callback_query(query_id, text='🌟 Randomization starts!..')
-
 
     return callback
 
 
 def randomize_group(bot: telebot.TeleBot, state: dict=None):
+    def generate_markup_openai(santa_id, group_id):
+        markup = types.InlineKeyboardMarkup()
+        callback_data = 'openai_{santa_id}_{group_id}'.format(santa_id=santa_id, group_id=group_id)
+        markup.add(
+            types.InlineKeyboardButton(
+                'Get suggestions from 🎅',
+                callback_data=callback_data
+            )
+        )
+        return markup
     
     def callback(query: types.CallbackQuery):
         group_id = int(query.data.split('_')[-1])
@@ -136,13 +156,11 @@ def randomize_group(bot: telebot.TeleBot, state: dict=None):
 
 🎁 <b>Desired Presents:</b>
     {desired_presents}
-
-🔔 <b>Important Notes:</b>
-[Include any specific instructions or details that Santa and the elves need to know for a successful delivery.]
 '''
                 bot.send_message(chat_id=entry[0],
                                 text=template.format(recipient_name=entry[1], group_name=entry[2], about=entry[3], desired_presents=entry[4]),
-                                parse_mode='HTML')
+                                parse_mode='HTML',
+                                reply_markup=generate_markup_openai(entry[5], group_id))
             bot.answer_callback_query(query.id, text='Group has been randomized! 🎉')
         else:
             message_text = "😔🎁 Unfortunately, it seems there's been a hiccup in our matching process of the group %s. Try again later..." % group_name
@@ -154,3 +172,49 @@ def randomize_group(bot: telebot.TeleBot, state: dict=None):
         state.pop(query.from_user.id)
 
     return callback
+
+
+def gpt_suggestion(bot: telebot.TeleBot, state: dict=None):
+    def _send_request(info: str):
+        completion = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {'role': 'system', 'content': 'Imagine you are Santa and helping elf to choose present for his recipient.'},
+                {"role": "user", "content": info}
+            ],
+            max_tokens=128, # Unfortunately, I can't afford more.
+            temperature=0.1 # I am not concerned about truthfulness of statements, but rather trying to make bot as creative as possible. 
+        )
+
+        return completion.choices[0].message.content
+        
+    def callback(query: types.CallbackQuery):
+        santa_id = int(query.data.split('_')[1])
+        group_id = int(query.data.split('_')[2])
+
+        entry = dbutils.get_gu_entry(state['database'], user_id=santa_id, group_id=group_id)
+
+        request = 'Be friendly and write emojies. Be short but meaningful.. I have some troubles choosing present for my recipient. If recipient did not provide any more information just be creative! There is some information that he/she told me: ' + \
+        'About: ' + entry[0] + '\n' + \
+        'Desired presents (optional): ' + entry[1]
+
+        if openai.api_key != '':
+            bot.answer_callback_query(query.id,
+                                    text='🎅 Pending request to Laplandia...')
+        else:
+            bot.answer_callback_query(query.id,
+                                    text='🎅 Santa is busy right now. Try again later!')
+        
+        try:
+            answer = _send_request(request)
+            bot.reply_to(query.message,
+                        text=answer)
+            
+        except:
+            bot.reply_to(query.message,
+                         text="Some troubles with Santa Claus's reindeer occured... 😔 Try again later!")
+
+            
+    return callback
+
+

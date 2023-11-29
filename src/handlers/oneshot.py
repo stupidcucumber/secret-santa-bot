@@ -1,7 +1,6 @@
 from telebot import types
 from ..utils import validators, dbutils
 import telebot
-from cryptography.fernet import Fernet
 
 
 def send_hello(bot: telebot.TeleBot, state: dict=None):

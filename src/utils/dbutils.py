@@ -148,7 +148,7 @@ def get_all_recipients(database: sqlite3.Connection, user_id: int) -> list:
     for user_id, group_id in users:
         temp = cursor.execute(
             '''
-                SELECT g.name, user_name, about, desired 
+                SELECT g.name, user_name, about, desired, user_id, g.group_id
                 FROM groups_users gu
                 INNER JOIN groups g ON g.group_id = gu.group_id 
                 WHERE santa_id = %d and gu.group_id = %d
@@ -219,7 +219,7 @@ def randomize_santas(database: sqlite3.Connection, group_id: int) -> list:
     for recipient_id, _ in recipient_ids_chat_ids:
         temp_recipient = cursor.execute(
             '''
-                SELECT user_name, g.name, about, desired
+                SELECT user_name, g.name, about, desired, user_id, g.group_id
                 FROM groups_users gu
                 INNER JOIN groups g ON g.group_id = gu.group_id
                 WHERE gu.group_id = %d and gu.santa_id = %d and gu.user_id IS NOT NULL
@@ -229,6 +229,20 @@ def randomize_santas(database: sqlite3.Connection, group_id: int) -> list:
 
     chat_ids = [recipient[1] for recipient in recipient_ids_chat_ids]
     recipients = [[chat_ids[index], *recipient] for index, recipient in enumerate(recipients_info)]
-    print(recipients_info)
+    print(recipients)
 
     return recipients # chat_id, user_name,  group_name, about, description
+
+
+def get_gu_entry(database: sqlite3.Connection, group_id: int, user_id: int):
+    cursor = database.cursor()
+
+    result = cursor.execute(
+        '''
+            SELECT about, desired
+            FROM groups_users
+            WHERE group_id = %d and user_id = %d
+        ''' % (group_id, user_id)
+    ).fetchone()
+
+    return result
