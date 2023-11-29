@@ -71,7 +71,7 @@ Write down suggested name of the group (/cancel to cancel action):'''
                 markup = types.InlineKeyboardMarkup()
                 markup.add(
                     types.InlineKeyboardButton(
-                        'Get suggestion from Santa',
+                        'Get suggestion from 🎅',
                         callback_data='openai_' + str(user_id) + '_' + str(group_id)
                     )
                 )
@@ -164,6 +164,7 @@ def randomize_group(bot: telebot.TeleBot, state: dict=None):
 
             bot.send_message(chat_id=query.message.chat.id,
                              text=message_text)
+            bot.answer_callback_query(query.id, text='Error 🎅')
             
 
         state.pop(query.from_user.id)

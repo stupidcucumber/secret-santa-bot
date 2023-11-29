@@ -198,7 +198,8 @@ def randomize_santas(database: sqlite3.Connection, group_id: int) -> list:
 
     if len(santas) < 2:
         return []
-        
+    
+    np.random.shuffle(santas)
     used = []
     for santa_id in santas:
         users = [id for id in santas if id != santa_id and id not in used]

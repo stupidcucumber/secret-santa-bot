@@ -68,7 +68,7 @@ if __name__ == '__main__':
         func=lambda message: state.get(message.from_user.id, None) is None
     )
     bot.register_message_handler(
-        callback=lambda message: bot.reply_to(message=message, text='Sorry, command is not recognized 🎅'),
+        callback=lambda message: bot.reply_to(message=message, text='🎅 Sorry, command is not recognized! Please, use /menu!'),
         func=lambda message: state.get(message.from_user.id, None) is None
     )
     bot.register_message_handler(
