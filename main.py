@@ -7,6 +7,7 @@ from src.utils import dbutils
 import sqlite3
 from cryptography.fernet import Fernet
 import openai
+import os
 
 sqlite3.threadsafety = 3
 
@@ -16,9 +17,9 @@ def parse_arguments():
 
     parser.add_argument('--config-path', type=str, default='./config.yaml',
                         help='Path to the file, where base configuration is being stored.')
-    parser.add_argument('--telegram-api-key', type=str, required=True,
+    parser.add_argument('--telegram-api-key', type=str, default=os.getenv('KEY_TELEGRAM'),
                         help='API-key of your bot.')
-    parser.add_argument('--openai-api-key', type=str, default='',
+    parser.add_argument('--openai-api-key', type=str, default=os.getenv('KEY_OPENAI'),
                         help='key of the openai API.')
     parser.add_argument('-c', '--create-database', action='store_true',
                         help='Path to the sqlite3 database. If not specified, default.db is created.')
@@ -34,16 +35,23 @@ if __name__ == '__main__':
 
     # Creating database
     if args.create_database:
-        database = dbutils.create_database(args.database)
-        key = Fernet.generate_key()
-        with open('.key', 'xb') as key_file:
-            key_file.write(key)
+        try:
+            database = dbutils.create_database(args.database)
+
+            key = Fernet.generate_key()
+            with open('.key', 'xb') as key_file:
+                key_file.write(key)
+
+        except Exception as e:
+            print('Database or key exists! connecting to that database.')
+
+            database = sqlite3.connect(args.database, check_same_thread=False)
+            with open('.key', 'rb') as key_file:
+                key = key_file.read()
     else:
         database = sqlite3.connect(args.database, check_same_thread=False)
         with open('.key', 'rb') as key_file:
             key = key_file.read()
-
-    # connection with
     
 
     # State can be 'CREATING_GROUP', or 'JOINING_GROUP', or 'GENERATING_DESRIPTION', None

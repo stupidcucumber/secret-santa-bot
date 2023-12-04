@@ -1,0 +1,11 @@
+services:
+  bot:
+    build: ./
+    environment:
+      - KEY_OPENAI=
+      - KEY_TELEGRAM=
+    volumes:
+      - python-bot:/app
+
+volumes:
+  python-bot:
